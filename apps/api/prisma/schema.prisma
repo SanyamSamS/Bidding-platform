@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+
+}
+
+enum Role {
+  BIDDER
+  UNION_ADMIN
+}
+
+enum BidStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum LineStatus {
+  OPEN
+  TAKEN
+}
+
+model User {
+  id         String   @id @default(cuid())
+  employeeId String   @unique
+  name       String?
+  role       Role     @default(BIDDER)
+  createdAt  DateTime @default(now())
+
+  participants  BidParticipant[]
+  assignedLines ShiftLine[] @relation("AssignedLines")
+  auditEvents   AuditLog[]  @relation("AuditActor")
+}
+
+model Bid {
+  id        String    @id @default(cuid())
+  name      String
+  status    BidStatus @default(DRAFT)
+  createdAt DateTime  @default(now())
+  openedAt  DateTime?
+  closedAt  DateTime?
+
+  state        BidState?
+  participants BidParticipant[]
+  lines        ShiftLine[]
+  audit        AuditLog[]
+}
+
+model BidState {
+  bidId        String   @id
+  bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  currentRank  Int      @default(1)
+  updatedAt    DateTime @updatedAt
+}
+
+model BidParticipant {
+  id        String   @id @default(cuid())
+  bidId     String
+  userId    String
+  rank      Int
+  createdAt DateTime @default(now())
+
+  bid  Bid  @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bidId, userId])
+  @@unique([bidId, rank])
+  @@index([bidId, rank])
+}
+
+model ShiftLine {
+  id           String     @id @default(cuid())
+  bidId        String
+  lineCode     String
+  label        String?
+  startTime    String?
+  endTime      String?
+  status       LineStatus @default(OPEN)
+  assignedToId String?
+  assignedAt   DateTime?
+  createdAt    DateTime   @default(now())
+
+  bid        Bid   @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  assignedTo User? @relation("AssignedLines", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@unique([bidId, lineCode])
+  @@index([bidId, status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  bidId     String
+  actorId   String?
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  bid   Bid   @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([bidId, createdAt])
+}
