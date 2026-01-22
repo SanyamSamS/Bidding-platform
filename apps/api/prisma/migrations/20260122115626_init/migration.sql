@@ -2,7 +2,8 @@
 CREATE TABLE `User` (
     `id` VARCHAR(191) NOT NULL,
     `employeeId` VARCHAR(191) NOT NULL,
-    `name` VARCHAR(191) NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `hireDate` DATETIME(3) NOT NULL,
     `role` ENUM('BIDDER', 'UNION_ADMIN') NOT NULL DEFAULT 'BIDDER',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
@@ -49,17 +50,18 @@ CREATE TABLE `BidParticipant` (
 CREATE TABLE `ShiftLine` (
     `id` VARCHAR(191) NOT NULL,
     `bidId` VARCHAR(191) NOT NULL,
-    `lineCode` VARCHAR(191) NOT NULL,
-    `label` VARCHAR(191) NULL,
-    `startTime` VARCHAR(191) NULL,
-    `endTime` VARCHAR(191) NULL,
+    `lineId` INTEGER NOT NULL,
+    `timeStart` VARCHAR(191) NOT NULL,
+    `timeEnd` VARCHAR(191) NOT NULL,
+    `daysOff` VARCHAR(191) NULL,
+    `location` VARCHAR(191) NULL,
     `status` ENUM('OPEN', 'TAKEN') NOT NULL DEFAULT 'OPEN',
     `assignedToId` VARCHAR(191) NULL,
     `assignedAt` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `ShiftLine_bidId_status_idx`(`bidId`, `status`),
-    UNIQUE INDEX `ShiftLine_bidId_lineCode_key`(`bidId`, `lineCode`),
+    UNIQUE INDEX `ShiftLine_bidId_lineId_key`(`bidId`, `lineId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-
 }
 
 enum Role {
@@ -26,7 +25,8 @@ enum LineStatus {
 model User {
   id         String   @id @default(cuid())
   employeeId String   @unique
-  name       String?
+  name       String
+  hireDate   DateTime
   role       Role     @default(BIDDER)
   createdAt  DateTime @default(now())
 
@@ -50,10 +50,10 @@ model Bid {
 }
 
 model BidState {
-  bidId        String   @id
-  bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
-  currentRank  Int      @default(1)
-  updatedAt    DateTime @updatedAt
+  bidId       String   @id
+  bid         Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  currentRank Int      @default(1)
+  updatedAt   DateTime @updatedAt
 }
 
 model BidParticipant {
@@ -74,10 +74,11 @@ model BidParticipant {
 model ShiftLine {
   id           String     @id @default(cuid())
   bidId        String
-  lineCode     String
-  label        String?
-  startTime    String?
-  endTime      String?
+  lineId       Int        // e.g., 102
+  timeStart    String     // e.g., "1300"
+  timeEnd      String     // e.g., "2100"
+  daysOff      String?    // e.g., "Thu/Fri"
+  location     String?    // e.g., "T3"
   status       LineStatus @default(OPEN)
   assignedToId String?
   assignedAt   DateTime?
@@ -86,7 +87,7 @@ model ShiftLine {
   bid        Bid   @relation(fields: [bidId], references: [id], onDelete: Cascade)
   assignedTo User? @relation("AssignedLines", fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  @@unique([bidId, lineCode])
+  @@unique([bidId, lineId])
   @@index([bidId, status])
 }
 
